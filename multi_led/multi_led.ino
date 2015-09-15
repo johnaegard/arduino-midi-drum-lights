@@ -1,8 +1,6 @@
 #include <MIDI.h>
 #include <limits.h>
 
-MIDI_CREATE_DEFAULT_INSTANCE();
-
 #define BOARD_LED 13
 #define KICK 36
 #define SNARE 38
@@ -33,19 +31,26 @@ MIDI_CREATE_DEFAULT_INSTANCE();
 #define LED_4  10
 #define LED_5  11
 
+#define DECAY_POT_PIN A5
+
 #define ENERGY_FLOOR 0
 #define ENERGY_FOR_SINGLE_LED 255
 #define ENERGY_CEIL 5*ENERGY_FOR_SINGLE_LED
 
-#define CRASH_BOOST 300
-#define DECAY 0
+#define CRASH_BOOST 1000
+#define DECAY_FLOOR 0.05
+#define DECAY_CEIL 1
 
-int iEnergy = 0;
+float fEnergy = 0;
+
 byte leds[] = { 
   LED_1, LED_2, LED_3, LED_4, LED_5 };
 
-void setup()
-{
+float decayCache[32];
+
+MIDI_CREATE_DEFAULT_INSTANCE();
+
+void setup(){
   MIDI.setHandleNoteOn(handleNoteOn);
   MIDI.setHandleNoteOff(handleNoteOff);
   MIDI.begin(MIDI_CHANNEL_OMNI); 
@@ -56,62 +61,25 @@ void setup()
   pinMode(LED_3,OUTPUT);
   pinMode(LED_4,OUTPUT);
   pinMode(LED_5,OUTPUT);
+  pinMode(DECAY_POT_PIN,INPUT);
+  memset(decayCache,0,sizeof(decayCache));
   testLeds();
-  Serial.begin(9600);
 }
 
 void loop(){
   MIDI.read();
-  addEnergy();
   decayEnergy();
-
-}
-
-void addEnergy() {
-  iEnergy=iEnergy+20 ; 
-}
-
-
-
-void decayEnergy() {
-  iEnergy = iEnergy - DECAY;
-  if ( iEnergy < ENERGY_FLOOR  ) {
-    iEnergy = ENERGY_FLOOR;
-  }
-  else if (iEnergy > ENERGY_CEIL ) {
-    iEnergy = ENERGY_CEIL;
-  }
-}
-
-void lightPixels() {
-  byte ledsToLight = ( iEnergy == 0 ) ? 0 : ( iEnergy / ENERGY_FOR_SINGLE_LED  ) +1;
-  byte finalLed = ledsToLight;
-  byte finalLedBrightness = iEnergy % ENERGY_FOR_SINGLE_LED;
-  Serial.print("iEnergy=");
-  Serial.println(iEnergy,DEC);
-  Serial.print("ledsToLight=");
-  Serial.println(ledsToLight, DEC);
-
-  for(byte led=0;led<ledsToLight;led++) {
-    analogWrite(leds[led],255);
-  }
-
-  Serial.print("finalBrightness=");
-    byte finalBrightness = iEnergy % ENERGY_CEIL;
-  Serial.println(finalBrightness, DEC);
-    analogWrite(leds[finalLed],linearBrightness(finalBrightness));
-  }
-
+  lightPixels();
 }
 
 void handleNoteOn(byte channel, byte instrument, byte velocity){
   on();
   switch(instrument) {
   case CRASH2_EDGE:
-    iEnergy = iEnergy + CRASH_BOOST;
+    fEnergy = fEnergy + map(velocity,0,127,0,CRASH_BOOST);
     break;
   case CRASH2:
-    iEnergy = iEnergy + CRASH_BOOST;
+    fEnergy = fEnergy + map(velocity,0,127,0,CRASH_BOOST);
     break;
   }
 }
@@ -120,11 +88,47 @@ void handleNoteOff(byte channel, byte pitch, byte velocity){
   off();
 }
 
-//void setLed(float r, float g, float b, float fB) {
-//  analogWrite(RED,   linearBrightness(r*fB));
-//  analogWrite(GREEN, linearBrightness(g*fB));
-//  analogWrite(BLUE,  linearBrightness(b*fB));
-//}
+void decayEnergy() {
+
+
+  float decay = mapFloat( analogRead(DECAY_POT_PIN)/32,0,32,DECAY_FLOOR,DECAY_CEIL);
+
+  fEnergy = fEnergy - decay;
+  if ( fEnergy <  ENERGY_FLOOR  ) {
+    fEnergy = ENERGY_FLOOR;
+  }
+  else if (fEnergy > ENERGY_CEIL ) {
+    fEnergy = ENERGY_CEIL;
+  }
+}
+
+void lightPixels() {
+  byte ledsToLight = ( fEnergy == 0 ) ? 0 : ( fEnergy / ENERGY_FOR_SINGLE_LED  ) ;
+
+  for(byte led=0;led<ledsToLight;led++) {
+    analogWrite(leds[led],255);
+  }
+
+  byte finalLed = ledsToLight;
+  byte finalLedBrightness = ( (int) fEnergy) % ENERGY_FOR_SINGLE_LED;
+  analogWrite(leds[finalLed],linearBrightness(finalLedBrightness));
+}
+
+void on(){
+  digitalWrite(BOARD_LED,HIGH);
+}
+
+void off(){
+  digitalWrite(BOARD_LED,LOW);
+}
+
+float mapFloat(int x, float in_min, float in_max, float out_min, float out_max){
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+  if ( decayCache[x] == 0 ) {
+    decayCache[x] = (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+  }
+  return decayCache[x];
+}
 
 const byte LINEAR_BRIGHTNESS_TABLE[] = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 
@@ -146,16 +150,6 @@ const byte LINEAR_BRIGHTNESS_TABLE[] = {
 
 byte linearBrightness(byte rawBrightness) {
   return LINEAR_BRIGHTNESS_TABLE[rawBrightness];
-}
-
-void on()
-{
-  digitalWrite(BOARD_LED,HIGH);
-}
-
-void off()
-{
-  digitalWrite(BOARD_LED,LOW);
 }
 
 void testLeds() {
@@ -180,11 +174,6 @@ void testLeds() {
   analogWrite(LED_1,0);
   delay(100);
 }
-
-
-
-
-
 
 
 
