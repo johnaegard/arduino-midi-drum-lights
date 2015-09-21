@@ -13,30 +13,89 @@
 #define ENERGY_FOR_SINGLE_LED 255
 #define ENERGY_CEIL NUM_PIXELS * ENERGY_FOR_SINGLE_LED
 
-#define CRASH_BOOST 15000
 #define DECAY_FLOOR 0
 #define DECAY_CEIL 1300
 #define TARGET_FPS 30
 #define MILLIS_BETWEEN_FRAMES 1000/TARGET_FPS
 
+#define SPIN_DECAY 0.03
+#define SPIN_IMPULSE 0.03
+
+#define KICK_IMPULSE 15000
+#define SNARE_IMPULSE 5000
+
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, NEOPIXEL_PIN, NEO_GRB + NEO_KHZ800);
 
-const uint32_t colors[][2] = { 
+const uint32_t colors[][24s] = {
+  {
+    strip.Color(64,0,0),
+    strip.Color(64,0,0),
+    strip.Color(64,0,0),
+    strip.Color(64,0,0),
+    strip.Color(0,255,0),
+    strip.Color(0,255,0),
+    strip.Color(0,255,0),
+    strip.Color(0,255,0),
+    strip.Color(0,0,64),
+    strip.Color(0,0,64),
+    strip.Color(0,0,64),
+    strip.Color(0,0,64),
+    strip.Color(255,0,255),
+    strip.Color(255,0,255),
+    strip.Color(255,0,255),
+    strip.Color(255,0,255),
+    strip.Color(64,64,0),
+    strip.Color(64,64,0),
+    strip.Color(64,64,0),
+    strip.Color(64,64,0),
+    strip.Color(0,255,255),
+    strip.Color(0,255,255),
+    strip.Color(0,255,255),
+    strip.Color(0,255,255)
+    }
+    ,
   { 
-    strip.Color(255,0,0), strip.Color(255,255,255)       }
-  ,
-  { 
-    strip.Color(0,255,0), strip.Color(255,255,0)       }
-  ,
-  { 
-    strip.Color(65,0,65), strip.Color(255,75,0)       }
-};
+    strip.Color(255,0,0),
+    strip.Color(255,0,0),
+    strip.Color(255,0,0),
+    strip.Color(255,0,0),
+    strip.Color(0,64,0),
+    strip.Color(0,64,0),
+    strip.Color(0,64,0),
+    strip.Color(0,64,0),
+    strip.Color(0,0,255),
+    strip.Color(0,0,255),
+    strip.Color(0,0,255),
+    strip.Color(0,0,255),
+    strip.Color(64,0,64),
+    strip.Color(64,0,64),
+    strip.Color(64,0,64),
+    strip.Color(64,0,64),
+    strip.Color(255,255,0),
+    strip.Color(255,255,0),
+    strip.Color(255,255,0),
+    strip.Color(255,255,0),
+    strip.Color(0,64,64),
+    strip.Color(0,64,64),
+    strip.Color(0,64,64),
+    strip.Color(0,64,64),
+    }
+  };
+
+  byte numColors = HowBigIsThisArray(colors[0]);
 
 float fEnergy = 0;
 float decayCache[32];
-byte colorCounter = 0;
 unsigned long lastPaintMillis = millis();
 unsigned long lastDecayMillis = millis();
+unsigned long lastSpinMillis = millis();
+
+float fColorCounter = 0;
+float fSpinRate = 0;
+float fNegativeSpinRate=0;
+
+byte colorSet=0;
+byte numColorSets = HowBigIsThisArray(colors);
 
 MIDI_CREATE_DEFAULT_INSTANCE();
 
@@ -71,7 +130,25 @@ void loop(){
   MIDI.read();
   decayEnergy();
   lightPixels();
+  spin();
   paint();
+}
+
+void spin() {
+
+  if ( millis() - lastSpinMillis < MILLIS_BETWEEN_FRAMES ) {
+    return;
+  }
+
+  fColorCounter = fColorCounter + fSpinRate - fNegativeSpinRate;
+
+  if ( fSpinRate > 0 ) fSpinRate = fSpinRate - SPIN_DECAY;
+  if ( fNegativeSpinRate < 0 ) fNegativeSpinRate = fNegativeSpinRate - SPIN_DECAY;
+  if ( fSpinRate < 0 ) fSpinRate = 0;
+  if ( fNegativeSpinRate < 0 ) fNegativeSpinRate = 0;
+
+  lastSpinMillis = millis();
+
 }
 
 void paint() {
@@ -83,6 +160,9 @@ void paint() {
 
 void decayEnergy() {
   if ( millis() - lastDecayMillis  >= MILLIS_BETWEEN_FRAMES ) {
+    if ( fSpinRate > 0 || fNegativeSpinRate > 0 ) {
+      return
+    }
     float decay = computeDecay( analogRead(DECAY_POT_PIN)/32,0,32,DECAY_FLOOR,DECAY_CEIL);
     fEnergy = fEnergy - decay;
     if ( fEnergy <  ENERGY_FLOOR  ) {
@@ -99,11 +179,11 @@ void lightPixels() {
   byte pixelsToLight = ( fEnergy == 0 ) ? 0 : ( fEnergy / ENERGY_FOR_SINGLE_LED  ) ;
 
   for(byte p=0;p<pixelsToLight;p++) {
-    if (  pixelsToLight - p > 4 )  {
-      strip.setPixelColor(p,colors[colorCounter][0]);
+    if (  pixelsToLight - p > 2 )  {
+      strip.setPixelColor(p,colors[colorSet][ ( p + (int) fColorCounter ) % numColors]);
     }
     else {
-      strip.setPixelColor(p,colors[colorCounter][1]);
+      strip.setPixelColor(p,255,255,255);
     }
   }
 
@@ -121,15 +201,28 @@ void handleNoteOn(byte channel, byte instrument, byte velocity){
 
   long energy = velocity * analogRead(ATTACK_POT_PIN);
 
-
   switch(instrument) {
   case KICK:
-    fEnergy = fEnergy + map(pow(velocity,1.75),0,4804,0,CRASH_BOOST);
+    fEnergy = fEnergy + map(pow(velocity,1.75),0,4804,0,KICK_IMPULSE);
     break;
   case SNARE:
-    colorCounter = ( colorCounter + 1 ) % HowBigIsThisArray(colors); 
+    fEnergy = fEnergy + map(pow(velocity,1.75),0,4804,0,SNARE_IMPULSE);
+    colorSet = ( colorSet + 1 ) % numColorSets;
+    break;
+  case CRASH1:
+    fNegativeSpinRate = velocity * SPIN_IMPULSE;
+    break;
+  case CRASH1_EDGE:
+    fNegativeSpinRate = velocity * SPIN_IMPULSE;
+    break;
+  case CRASH2:
+    fSpinRate = velocity * SPIN_IMPULSE;
+    break;
+  case CRASH2_EDGE:
+    fSpinRate = velocity * SPIN_IMPULSE;
     break;
   }
+
 }
 
 void handleNoteOff(byte channel, byte pitch, byte velocity){
@@ -175,6 +268,20 @@ const byte LINEAR_BRIGHTNESS_TABLE[] = {
 byte linearBrightness(byte rawBrightness) {
   return LINEAR_BRIGHTNESS_TABLE[rawBrightness];
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
