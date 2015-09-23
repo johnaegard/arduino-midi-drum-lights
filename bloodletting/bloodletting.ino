@@ -5,24 +5,35 @@
 #define HowBigIsThisArray(x) (sizeof(x) / sizeof(x[0]))
 #define NEOPIXEL_PIN    6
 #define NUM_PIXELS 60
+#define MIDDLE_PIXEL NUM_PIXELS/2
 #define BOARD_LED 13
 #define DECAY_POT_PIN A5
 #define ATTACK_POT_PIN A4
 #define MIDI_ON_PIN 12
+
 #define ENERGY_FLOOR 0
 #define ENERGY_FOR_SINGLE_LED 255
 #define ENERGY_CEIL NUM_PIXELS * ENERGY_FOR_SINGLE_LED
 
+#define TARGET_FPS 50
+#define MILLIS_BETWEEN_FRAMES 1000/TARGET_FPS
+
 #define DECAY_FLOOR 0
 #define DECAY_CEIL 1500
-#define TARGET_FPS 60
-#define MILLIS_BETWEEN_FRAMES 1000/TARGET_FPS
+
+#define RED_DECAY_FLOOR 100
+#define RED_DECAY_CEIL 400
+#define WHITE_DECAY_FLOOR 100
+#define WHITE_DECAY_CEIL 800
 
 #define SPIN_DECAY 0.0029
 #define SPIN_IMPULSE 0.0075
 
-#define KICK_IMPULSE 15000
-#define SNARE_IMPULSE 10000
+#define SPARKLE_FACTOR_START 0.9
+#define SPARKLE_DECAY 0.005
+
+#define KICK_IMPULSE 27000
+#define SNARE_IMPULSE 6000
 #define TOM_IMPULSE 7500
 #define CRASH_IMPULSE 15000
 
@@ -66,10 +77,16 @@ const uint32_t colors[][9] = {
 byte numColors = HowBigIsThisArray(colors[0]);
 
 float fEnergy = 0;
+float fRedEnergy=0;
+float fWhiteEnergy=0;
+
+float fSparkleFactor=0;
+
 float decayCache[32];
-unsigned long lastPaintMillis = millis();
-unsigned long lastDecayMillis = millis();
-unsigned long lastSpinMillis = millis();
+unsigned long lastPaintMillis = millis(); 
+unsigned long lastDecayMillis = millis() + MILLIS_BETWEEN_FRAMES * 1 / 4;
+unsigned long lastSpinMillis = millis() + MILLIS_BETWEEN_FRAMES * 2 / 4;
+unsigned long lastSparkleDecayMillis = millis() + MILLIS_BETWEEN_FRAMES * 3 / 4;
 
 float fColorCounter = 0;
 float fSpinRate = 0;
@@ -110,98 +127,105 @@ void testPixels() {
 void loop(){
   MIDI.read();
   decayEnergy();
-  lightPixels();
-  spin();
-  paint();
+  decaySparkle();
+  repaint();
 }
 
-void spin() {
-
-  if ( millis() - lastSpinMillis < MILLIS_BETWEEN_FRAMES ) {
-    return;
+void decaySparkle() {
+  if ( millis() - lastSparkleDecayMillis  >= MILLIS_BETWEEN_FRAMES ) {
+   fSparkleFactor = fSparkleFactor - SPARKLE_DECAY; 
+   if ( fSparkleFactor < 0 ) {
+     fSparkleFactor = 0;
+   }
+   lastSparkleDecayMillis = millis();
   }
-
-  fColorCounter = fColorCounter + fSpinRate - fNegativeSpinRate;
-
-  if ( fSpinRate > 0 ) fSpinRate = fSpinRate - SPIN_DECAY;
-  if ( fNegativeSpinRate > 0 ) fNegativeSpinRate = fNegativeSpinRate - SPIN_DECAY;
-  if ( fSpinRate < 0 ) fSpinRate = 0;
-  if ( fNegativeSpinRate < 0 ) fNegativeSpinRate = 0;
-
-  lastSpinMillis = millis();
-
 }
 
-void paint() {
+
+void repaint() {
   if ( millis() - lastPaintMillis  >= MILLIS_BETWEEN_FRAMES ) { 
+    lightPixels();
     strip.show();
     lastPaintMillis = millis();  
   }
 }
 
+float applyDecay( float fEnergy, int decayPotValue, int decayFloor, int decayCeiling ) {
+  fEnergy = fEnergy - computeDecay( decayPotValue/32,0,32,decayFloor,decayCeiling);  
+  if ( fEnergy <  ENERGY_FLOOR  ) {
+    fEnergy = ENERGY_FLOOR;
+  }
+  else if (fEnergy > ENERGY_CEIL ) {
+    fEnergy = ENERGY_CEIL;
+  }
+  return fEnergy;
+}
+
 void decayEnergy() {
-  if ( millis() - lastDecayMillis  >= MILLIS_BETWEEN_FRAMES ) {
-    float decay = computeDecay( analogRead(DECAY_POT_PIN)/32,0,32,DECAY_FLOOR,DECAY_CEIL);
-    fEnergy = fEnergy - decay;
-    if ( fEnergy <  ENERGY_FLOOR  ) {
-      fEnergy = ENERGY_FLOOR;
-    }
-    else if (fEnergy > ENERGY_CEIL ) {
-      fEnergy = ENERGY_CEIL;
-    }
+  if ( millis() - lastDecayMillis >= MILLIS_BETWEEN_FRAMES ) {
+    fRedEnergy = applyDecay( 
+      fRedEnergy,
+      analogRead(DECAY_POT_PIN),
+      RED_DECAY_FLOOR,
+      RED_DECAY_CEIL
+    );
+    fWhiteEnergy = applyDecay( 
+      fWhiteEnergy,
+      analogRead(DECAY_POT_PIN),
+      WHITE_DECAY_FLOOR,
+      WHITE_DECAY_CEIL
+    );
     lastDecayMillis=millis();
   }
-}
+}    
 
 void lightPixels() {
-  byte pixelsToLight = ( fEnergy == 0 ) ? 0 : ( fEnergy / ENERGY_FOR_SINGLE_LED  ) ;
+  byte redPixelsToLight = ( fRedEnergy == 0 ) ? 0 : ( fRedEnergy / ENERGY_FOR_SINGLE_LED / 2 ) ;
+  byte whitePixelsToLight = ( fWhiteEnergy == 0 ) ? 0 : ( fWhiteEnergy / ENERGY_FOR_SINGLE_LED / 2 ) ;
 
-  for(byte p=0;p<pixelsToLight;p++) {
-    if (  pixelsToLight - p > 2 )  {
-      strip.setPixelColor(p,colors[colorSet][ ( p + (int) fColorCounter ) % numColors]);
+  for( byte p=0; p<NUM_PIXELS; p++ ) {
+
+    byte distanceFromMiddle = abs ( p - MIDDLE_PIXEL );
+    float brightnessFactor = 
+      1.0 - fSparkleFactor + ( (float ) ( random( fSparkleFactor * 10 + 1) ) / 10.0 );
+    byte brightness = 255 * brightnessFactor;
+    byte actualBrightness = linearBrightness( brightness ) / 2;
+    
+    if ( distanceFromMiddle < whitePixelsToLight ) {
+      strip.setPixelColor(p, WHITE);
+    }
+    else if ( distanceFromMiddle < redPixelsToLight ) {
+      strip.setPixelColor(p,actualBrightness,0,0);
     }
     else {
-      strip.setPixelColor(p,255,255,255);
+      strip.setPixelColor(p,BLACK);
     }
   }
-
-  byte finalPixel = pixelsToLight;
-  byte finalPixelBrightness = linearBrightness(( (int) fEnergy) % ENERGY_FOR_SINGLE_LED);
-  strip.setPixelColor(finalPixel,finalPixelBrightness,finalPixelBrightness,finalPixelBrightness);
-
-  for(byte p=pixelsToLight+1;p<NUM_PIXELS;p++) {
-    strip.setPixelColor(p,0,0,0);
-  }
 }
+
+
 
 void handleNoteOn(byte channel, byte instrument, byte velocity){
   on();
 
-  long energy = velocity * analogRead(ATTACK_POT_PIN);
-
   switch(instrument) {
   case KICK:
-    fEnergy = fEnergy + map(pow(velocity,1.75),0,4804,0,KICK_IMPULSE);
+    fRedEnergy = fRedEnergy + map(pow(velocity,1.75),0,4804,0,KICK_IMPULSE);
     break;
   case SNARE:
-    fEnergy = fEnergy + map(pow(velocity,1.75),0,4804,0,SNARE_IMPULSE);
-    colorSet = ( colorSet + 1 ) % numColorSets;
+    fWhiteEnergy = fWhiteEnergy + map(pow(velocity,1.75),0,4804,0,SNARE_IMPULSE);
     break;
   case CRASH1:
-    addEnergy(velocity,CRASH_IMPULSE);
-    fNegativeSpinRate = velocity * SPIN_IMPULSE;
+    resetSparkleFactor();
     break;
   case CRASH1_EDGE:
-    addEnergy(velocity,CRASH_IMPULSE);
-    fNegativeSpinRate = velocity * SPIN_IMPULSE;
+    resetSparkleFactor();
     break;
   case CRASH2:
-    addEnergy(velocity,CRASH_IMPULSE);
-    fSpinRate = velocity * SPIN_IMPULSE;
+    resetSparkleFactor();
     break;
   case CRASH2_EDGE:
-    addEnergy(velocity,CRASH_IMPULSE);
-    fSpinRate = velocity * SPIN_IMPULSE;
+    resetSparkleFactor();
     break;
   case TOM1:
     marchColors(2);
@@ -231,6 +255,9 @@ void handleNoteOn(byte channel, byte instrument, byte velocity){
   }
 }
 
+void resetSparkleFactor() {
+  fSparkleFactor = SPARKLE_FACTOR_START;
+}
 
 void marchColors(int step) {
   fColorCounter = fColorCounter+step;
@@ -253,7 +280,6 @@ void off(){
 }
 
 float computeDecay(int x, float in_min, float in_max, float out_min, float out_max){
-
   // note see fscale
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
   if ( decayCache[x] == 0 ) {
@@ -282,6 +308,24 @@ const byte LINEAR_BRIGHTNESS_TABLE[] = {
 
 byte linearBrightness(byte rawBrightness) {
   return LINEAR_BRIGHTNESS_TABLE[rawBrightness];
+}
+
+
+void spin() {
+
+  if ( millis() - lastSpinMillis < MILLIS_BETWEEN_FRAMES ) {
+    return;
+  }
+
+  fColorCounter = fColorCounter + fSpinRate - fNegativeSpinRate;
+
+  if ( fSpinRate > 0 ) fSpinRate = fSpinRate - SPIN_DECAY;
+  if ( fNegativeSpinRate > 0 ) fNegativeSpinRate = fNegativeSpinRate - SPIN_DECAY;
+  if ( fSpinRate < 0 ) fSpinRate = 0;
+  if ( fNegativeSpinRate < 0 ) fNegativeSpinRate = 0;
+
+  lastSpinMillis = millis();
+
 }
 
 
