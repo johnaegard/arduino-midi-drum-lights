@@ -1,0 +1,23 @@
+#define KICK 36
+#define SNARE 38
+#define SNARE_RIM 40
+#define XSTICK 37
+#define TOM1 48
+#define TOM1_RIM 50
+#define TOM2 45
+#define TOM2_RIM 47
+#define TOM3 43
+#define TOM3_RIM 58
+#define HIHAT_OPEN 46
+#define HIHAT_OPEN_RIM 26
+#define HIHAT_CLOSED 42
+#define HIHAT_CLOSED_RIM 22
+#define HIHAT_PEDAL 44
+#define CRASH1 49
+#define CRASH1_EDGE 55
+#define CRASH2 57
+#define CRASH2_EDGE 52
+#define RIDE 51
+#define RIDE_EDGE 59
+#define RIDE_BELL 53
+
