@@ -21,18 +21,19 @@ byte s;
 
 CRGB g_pixels[5][NUM_PIXELS_PER_STRIP];
 
-Lightshow *raven = new Lightshow(g_pixels, CRGB::Purple);
-Lightshow *skin = new Lightshow(g_pixels, CRGB::White);
-Lightshow *loose = new Lightshow(g_pixels, CRGB::Blue);
-Lightshow *bloodletting = new Lightshow(g_pixels, CRGB::Red);
-Lightshow *creep = new Lightshow(g_pixels, CRGB::Yellow);
-Lightshow *witch = new Lightshow(g_pixels, CRGB::Green);
-Lightshow *hands = new Lightshow(g_pixels, CRGB::Teal);
-Lightshow *bdm = new Lightshow(g_pixels, CRGB::Orange);
+MIDI_CREATE_DEFAULT_INSTANCE();
+
+Lightshow *raven = new Lightshow(&MIDI,g_pixels, CRGB::Purple);
+Lightshow *skin = new Lightshow(&MIDI,g_pixels, CRGB::White);
+Lightshow *loose = new Lightshow(&MIDI,g_pixels, CRGB::Blue);
+Lightshow *bloodletting = new Lightshow(&MIDI,g_pixels, CRGB::Red);
+Lightshow *creep = new Lightshow(&MIDI,g_pixels, CRGB::Yellow);
+Lightshow *witch = new Lightshow(&MIDI,g_pixels, CRGB::Green);
+Lightshow *hands = new Lightshow(&MIDI,g_pixels, CRGB::Teal);
+Lightshow *bdm = new Lightshow(&MIDI,g_pixels, CRGB::Orange);
+Lightshow *unknown = new Lightshow(&MIDI,g_pixels, CRGB::DeepPink);
 
 Lightshow *activeLightshow = raven;
-
-MIDI_CREATE_DEFAULT_INSTANCE();
 
 //
 //SETUP
@@ -69,6 +70,7 @@ void setupMidi() {
 void loop() {
   MIDI.read();
   decay();
+  MIDI.read();
   repaint();
 }
 
@@ -132,6 +134,8 @@ void handleProgramChange (byte channel, byte drumkit) {
     case WITCH:
       activeLightshow = witch;
       break;
+    default:
+      activeLightshow = unknown;
   }
   activeLightshow->reset();
   off();
