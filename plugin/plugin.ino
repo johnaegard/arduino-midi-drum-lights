@@ -1,17 +1,20 @@
-#include "td15_midi_notes.h"
 #include <FastLED.h>
 #include <midi_Message.h>
 #include <midi_Namespace.h>
 #include <MIDI.h>
 #include <midi_Defs.h>
 #include <midi_Settings.h>
-#include "lightshow.h"
 #include "songs.h"
+#include "td15_midi_notes.h"
+
+#include "plain_lightshow.h"
+#include "bloodletting.h"
+
 
 #define BOARD_LED_PIN 13
 #define MIDI_ENABLE_PIN 12
 #define NUM_PIXELS_PER_STRIP 60
-#define MAX_FPS 24
+#define MAX_FPS 30
 #define MILLIS_BETWEEN_FRAMES 1000/MAX_FPS
 
 unsigned long g_last_paint_millis = millis();
@@ -23,17 +26,17 @@ CRGB g_pixels[5][NUM_PIXELS_PER_STRIP];
 
 MIDI_CREATE_DEFAULT_INSTANCE();
 
-Lightshow *raven = new Lightshow(&MIDI,g_pixels, CRGB::Purple);
-Lightshow *skin = new Lightshow(&MIDI,g_pixels, CRGB::White);
-Lightshow *loose = new Lightshow(&MIDI,g_pixels, CRGB::Blue);
-Lightshow *bloodletting = new Lightshow(&MIDI,g_pixels, CRGB::Red);
-Lightshow *creep = new Lightshow(&MIDI,g_pixels, CRGB::Yellow);
-Lightshow *witch = new Lightshow(&MIDI,g_pixels, CRGB::Green);
-Lightshow *hands = new Lightshow(&MIDI,g_pixels, CRGB::Teal);
-Lightshow *bdm = new Lightshow(&MIDI,g_pixels, CRGB::Orange);
-Lightshow *unknown = new Lightshow(&MIDI,g_pixels, CRGB::DeepPink);
+Lightshow *raven = new PlainLightshow(&MIDI,g_pixels, CRGB::Purple);
+Lightshow *skin = new PlainLightshow(&MIDI,g_pixels, CRGB::White);
+Lightshow *loose = new PlainLightshow(&MIDI,g_pixels, CRGB::Blue);
+Lightshow *bloodletting = new BloodlettingLightshow(&MIDI,g_pixels);
+Lightshow *creep = new PlainLightshow(&MIDI,g_pixels, CRGB::Yellow);
+Lightshow *witch = new PlainLightshow(&MIDI,g_pixels, CRGB::Green);
+Lightshow *hands = new PlainLightshow(&MIDI,g_pixels, CRGB::Teal);
+Lightshow *bdm = new PlainLightshow(&MIDI,g_pixels, CRGB::Orange);
+Lightshow *unknown = new PlainLightshow(&MIDI,g_pixels, CRGB::DeepPink);
 
-Lightshow *activeLightshow = raven;
+Lightshow *activeLightshow = bloodletting;
 
 //
 //SETUP

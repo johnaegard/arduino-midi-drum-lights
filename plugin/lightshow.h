@@ -1,34 +1,51 @@
-#include <midi_Message.h>
-#include <midi_Namespace.h>
-#include <MIDI.h>
-#include <midi_Defs.h>
-#include <midi_Settings.h>
-#include <Arduino.h>
-#include <FastLED.h>
-
 #ifndef Lightshow_h
 #define Lightshow_h
 
+#include <Arduino.h>
+#include "td15_midi_notes.h"
+
+#define DECAY_POT_PIN A5
 #define NUM_PIXELS_PER_STRIP 60
+#define MIDDLE_PIXEL NUM_PIXELS_PER_STRIP / 2
 
-class Lightshow
-{
+class Lightshow {
   public:
-    Lightshow(midi::MidiInterface<HardwareSerial> *m,CRGB pixels[][NUM_PIXELS_PER_STRIP],CRGB::HTMLColorCode color);
-    void decay();
-    void updatePixels();
-    void reset();
-    void handleNoteOn(byte channel, byte instrument, byte velocity);
-    void handleNoteOff(byte channel, byte instrument, byte velocity);
+    virtual void decay() = 0;
+    virtual void updatePixels() = 0;
+    virtual void reset() = 0;
+    virtual void handleNoteOn(byte channel, byte instrument, byte velocity) = 0;
+    virtual void handleNoteOff(byte channel, byte instrument, byte velocity) = 0;
 
-  private:
-    CRGB::HTMLColorCode _color;
-    float _fEnergy;
+    Lightshow() {
+      pinMode(DECAY_POT_PIN,INPUT);
+      //      memset(_decayCache, 0, sizeof(_decayCache));
+    }
+
+  protected:
     CRGB (*_pixels)[NUM_PIXELS_PER_STRIP];
     byte s, p;
-    bool _mustSweep = true;
     midi::MidiInterface<HardwareSerial> *_midi;
+    float _decay;
+    float _decayCache[8];
+
+    void applyDecay(
+      float &energy,
+      float decayFloor,
+      float decayCeiling,
+      float energyFloor,
+      float energyCeiling
+    ) {
+      _decay = computeDecay( analogRead(DECAY_POT_PIN) / 128, 0, 8, decayFloor, decayCeiling);
+      energy = constrain(energy - _decay, energyFloor, energyCeiling);
+    }
+
+    float computeDecay(int x, float in_min, float in_max, float out_min, float out_max) {
+      return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+      if ( _decayCache[x] == 0 ) {
+        _decayCache[x] = (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+      }
+      return _decayCache[x];
+    }
 };
 
 #endif
-
