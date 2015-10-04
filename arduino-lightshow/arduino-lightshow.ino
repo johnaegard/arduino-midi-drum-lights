@@ -14,11 +14,11 @@
 #define BOARD_LED_PIN 13
 #define MIDI_ENABLE_PIN 12
 #define NUM_PIXELS_PER_STRIP 60
-#define MAX_FPS 30
+#define MAX_FPS 12
 #define MILLIS_BETWEEN_FRAMES 1000/MAX_FPS
 
 unsigned long g_last_paint_millis = millis();
-unsigned long g_last_decay_millis = millis() + MILLIS_BETWEEN_FRAMES * 1 / 4;
+unsigned long g_last_decay_millis = millis() + MILLIS_BETWEEN_FRAMES / 2;
 byte p;
 byte s;
 
