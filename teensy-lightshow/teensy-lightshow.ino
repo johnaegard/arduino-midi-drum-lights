@@ -54,7 +54,7 @@ Lightshow *hands = new PlainLightshow( &g_pixels, TEAL);
 Lightshow *bdm = new PlainLightshow( &g_pixels, ORANGE);
 Lightshow *unknown = new PlainLightshow( &g_pixels, PINK);
 
-Lightshow *activeLightshow = raven;
+Lightshow *activeLightshow = bloodletting;
 
 //
 // SETUPS
@@ -112,7 +112,6 @@ void repaint() {
     g_frames_processed++;
   }
 }
-
 
 //
 // MIDI CALLBACKS
