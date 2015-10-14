@@ -1,0 +1,32 @@
+TO DO:
+
+WITCH
+  * very plain.  Block colors, not so bright.  Change color every four hihats?  Reset count on crash.
+  * kick drum chorus increases brightness.
+
+CREEP
+  * hot white chorus triggered by ride
+
+BLOODLETTING
+  * ensure colors corrected
+  * hihat / ride influence global brightness?  Little pulse every beat?
+ 
+BDM
+  x make it rain and twinkle
+  o started by crash cymbal
+  o some interactivity 
+
+LOOSE
+
+HANDS
+  * 
+
+SKINHEADS
+  * something with spin.
+ 
+
+o Split power between two terminals.
+o MIDI NOTE ON LED
+o POWER LED
+o Teensy POWERED BY LOCAL SUPPLY
+o POWER SWITCH
