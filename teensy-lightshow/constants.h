@@ -1,3 +1,4 @@
+#define NUM_STRIPS 5
 #define PIXELS_PER_STRIP 60
 #define MIDDLE_PIXEL PIXELS_PER_STRIP / 2
 

@@ -26,15 +26,21 @@ class BloodlettingLightshow : public Lightshow
     void reset();
     void handleNoteOn(byte channel, byte instrument, byte velocity);
     void handleNoteOff(byte channel, byte instrument, byte velocity);
-    
+
   private:
     void decaySparkle();
     void resetSparkle();
-    float _fRedEnergy[5] = {0,0,0,0,0};
-    float _fWhiteEnergy[5] ={0,0,0,0,0};
+    void verseColors();
+    void chorusColors();
+    float _fRedEnergy[5] = {0, 0, 0, 0, 0};
+    float _fWhiteEnergy[5] = {0, 0, 0, 0, 0};
     float _fSparkle;
     byte _currentRedStrip;
     byte _previousRedStrip;
     byte _currentWhiteStrip;
     unsigned int _previousKickDrumMillis = millis();
+    RGBB _snareColor;
+    RGBB _snareEdgeColor;
+    RGBB _kickColor;;
+
 };

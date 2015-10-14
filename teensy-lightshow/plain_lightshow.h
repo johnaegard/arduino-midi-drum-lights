@@ -4,7 +4,7 @@
 class PlainLightshow : public Lightshow
 {
   public:
-    PlainLightshow( OctoWS2811 *p, int color);
+    PlainLightshow( OctoWS2811 *p, RGBB color);
     void decay();
     void updatePixels();
     void reset();
@@ -12,7 +12,7 @@ class PlainLightshow : public Lightshow
     void handleNoteOff(byte channel, byte instrument, byte velocity);
     
   private:
-    int _color;
+    RGBB _color;
     float _fEnergy;
 };
 

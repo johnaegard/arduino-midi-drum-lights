@@ -2,13 +2,16 @@
 
 BloodlettingLightshow::BloodlettingLightshow(OctoWS2811 *p) {
   _pixels = p;
-  reset();
 }
 
+//
+// BOILERPLATE
+//
 void BloodlettingLightshow::reset() {
   _fSparkle = 0;
   _currentRedStrip = 0;
   _currentWhiteStrip = 0;
+  verseColors();
 }
 
 void BloodlettingLightshow::decay() {
@@ -17,18 +20,6 @@ void BloodlettingLightshow::decay() {
     applyDecay(_fWhiteEnergy[s], WHITE_DECAY, ENERGY_FLOOR, WHITE_CEIL);
   }
   decaySparkle();
-}
-
-//applyDecay
-//SPARKLE!
-//
-
-void BloodlettingLightshow::resetSparkle() {
-  _fSparkle = SPARKLE_FACTOR_START;
-}
-
-void BloodlettingLightshow::decaySparkle() {
-  _fSparkle = constrain( _fSparkle - SPARKLE_DECAY, SPARKLE_FLOOR, SPARKLE_CEIL);
 }
 
 void BloodlettingLightshow::updatePixels() {
@@ -44,23 +35,54 @@ void BloodlettingLightshow::updatePixels() {
 
       float sparkleBrightnessFactor =
         1.0 - _fSparkle + ( (float ) ( random( _fSparkle * 10 + 1) ) / 10.0 );
-      byte sparkleBrightness = 255 * sparkleBrightnessFactor;
-      float actualBrightness = (float) linearBrightness( sparkleBrightness ) / 255;
 
-      if ( distanceFromMiddle < whitePixelsToLight ) {
-        Pixels::pixelSet(_pixels, s, p, actualBrightness * WHITE);
+      if (whitePixelsToLight - distanceFromMiddle == 1 ) {
+        Pixels::pixelSet(_pixels, s, p, _snareEdgeColor, sparkleBrightnessFactor);
+      }
+      else if ( distanceFromMiddle < whitePixelsToLight ) {
+        Pixels::pixelSet(_pixels, s, p, _snareColor, sparkleBrightnessFactor);
       }
       else if ( distanceFromMiddle < redPixelsToLight ) {
-        Pixels::pixelSet(_pixels, s, p, actualBrightness * RED);
+        Pixels::pixelSet(_pixels, s, p, _kickColor, sparkleBrightnessFactor);
       }
       else {
-        Pixels::pixelSet(_pixels, s, p, BLACK);
+        Pixels::pixelSet(_pixels, s, p, BLACK, 0);
       }
     }
   }
 }
 
+//
+// SPARKLE
+//
+void BloodlettingLightshow::resetSparkle() {
+  _fSparkle = SPARKLE_FACTOR_START;
+}
+
+void BloodlettingLightshow::decaySparkle() {
+  _fSparkle = constrain( _fSparkle - SPARKLE_DECAY, SPARKLE_FLOOR, SPARKLE_CEIL);
+}
+
+//
+// PALETTE CHANGE
+//
+void BloodlettingLightshow::chorusColors() {
+  _snareColor = BLUE;
+  _snareEdgeColor = WHITE;
+  _kickColor = HALFGREEN;
+}
+
+void BloodlettingLightshow::verseColors() {
+  _snareColor = YELLOW;
+  _snareEdgeColor = WHITE;
+  _kickColor = HALFRED;
+}
+
+//
+// MIDI CRAP
+//
 void BloodlettingLightshow::handleNoteOn(byte channel, byte instrument, byte velocity) {
+
   switch (instrument) {
     case KICK:
       _previousRedStrip = _currentRedStrip;
@@ -109,7 +131,33 @@ void BloodlettingLightshow::handleNoteOn(byte channel, byte instrument, byte vel
       break;
     case TOM3_RIM:
       break;
+    case RIDE:
+      chorusColors();
+      break;
+    case RIDE_EDGE:
+      chorusColors();
+      break;
+    case RIDE_BELL:
+      chorusColors();
+      break;
+    case HIHAT_OPEN:
+      verseColors();
+      break;
+    case HIHAT_OPEN_RIM:
+      verseColors();
+      break;
+    case HIHAT_CLOSED:
+      verseColors();
+      break;
+    case HIHAT_CLOSED_RIM:
+      verseColors();
+      break;
+    case HIHAT_PEDAL:
+      verseColors();
+      break;
+
   }
+
 }
 
 void BloodlettingLightshow::handleNoteOff(byte channel, byte instrument, byte velocity) {}

@@ -21,12 +21,14 @@
 //
 #include "plain_lightshow.h"
 #include "bloodletting.h"
+#include "bdm.h"
 
 #define BOARD_LED_PIN 13
 #define MAX_FPS 100
 #define MILLIS_BETWEEN_FRAMES 1000/MAX_FPS
 #define OCTO_CONFIG WS2811_GRB | WS2811_800kHz
 #define MILLIS_BETWEEN_FPS 2000
+#define VELOCITY_FLOOR 32
 
 //
 // GLOBALS
@@ -41,20 +43,17 @@ unsigned long g_last_fps_millis = millis();
 elapsedMillis runtime;
 unsigned long g_frames_processed = 0;
 
-//
-// LIGHTSHOWS
-//
-Lightshow *raven = new PlainLightshow( &g_pixels, PURPLE);
-Lightshow *skin = new PlainLightshow( &g_pixels, WHITE);
-Lightshow *loose = new PlainLightshow( &g_pixels, BLUE);
-Lightshow *bloodletting = new BloodlettingLightshow( &g_pixels);
-Lightshow *creep = new PlainLightshow( &g_pixels, YELLOW);
-Lightshow *witch = new PlainLightshow( &g_pixels, GREEN);
-Lightshow *hands = new PlainLightshow( &g_pixels, TEAL);
-Lightshow *bdm = new PlainLightshow( &g_pixels, ORANGE);
-Lightshow *unknown = new PlainLightshow( &g_pixels, PINK);
+Lightshow *raven;
+Lightshow *skin;
+Lightshow *loose;
+Lightshow *bloodletting;
+Lightshow *creep;
+Lightshow *witch;
+Lightshow *hands;
+Lightshow *bdm;
+Lightshow *unknown;
 
-Lightshow *activeLightshow = bloodletting;
+Lightshow *activeLightshow;
 
 //
 // SETUPS
@@ -65,6 +64,7 @@ void setup() {
   setupPixels();
   helloPixels();
   setupDebugChannel();
+  setupLightshows();
 }
 
 void setupMidi() {
@@ -85,7 +85,24 @@ void setupDebugChannel() {
   Serial.println("setup() complete!");
   Serial.println("Ready for action");
 }
+void setupLightshows() {
+  raven = new PlainLightshow( &g_pixels, PURPLE);
+  skin = new PlainLightshow( &g_pixels, WHITE);
+  loose = new PlainLightshow( &g_pixels, BLUE);
+  bloodletting = new BloodlettingLightshow( &g_pixels);
+  creep = new PlainLightshow( &g_pixels, YELLOW);
+  witch = new PlainLightshow( &g_pixels, GREEN);
+  hands = new PlainLightshow( &g_pixels, TEAL);
+  bdm = new BDMLightshow( &g_pixels);
+  unknown = new PlainLightshow( &g_pixels, PINK);
 
+  activeLightshow = bdm;
+  activeLightshow->reset();
+}
+
+//
+// LLOOOOOOOOOOOOOOOOOOOOOPPP!
+//
 void loop() {
   MIDI.read();
   decay();
@@ -119,7 +136,9 @@ void repaint() {
 
 void handleNoteOn(byte channel, byte instrument, byte velocity) {
   Serial.println(String("Note On:  ch=") + channel + ", note=" + instrument + ", velocity=" + velocity);
-  activeLightshow->handleNoteOn( channel, instrument, velocity );
+  if (velocity > VELOCITY_FLOOR ) {
+    activeLightshow->handleNoteOn( channel, instrument, velocity );
+  }
   on();
 }
 
@@ -182,15 +201,15 @@ void outputFPS() {
 void helloPixels() {
   for (byte p = 0; p < PIXELS_PER_STRIP; p++) {
     for (byte s = 0; s < 5; s++) {
-      Pixels::pixelSet(&g_pixels, s, p, ORANGE);
+      Pixels::pixelSet(&g_pixels, s, p, ORANGE, 1.0);
       if ( p >= 4 )  {
-        Pixels::pixelSet(&g_pixels, s, p - 4, BLACK);
+        Pixels::pixelSet(&g_pixels, s, p - 4, BLACK, 0.0);
       }
     }
     g_pixels.show();
     delay(10);
   }
-  Pixels::floodFill(&g_pixels, BLACK);
+  Pixels::floodFill(&g_pixels, BLACK, 0);
   g_pixels.show();
 }
 

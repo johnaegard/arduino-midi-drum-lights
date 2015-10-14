@@ -3,7 +3,7 @@
 #define DECAY_RATE 0.2
 #define ENERGY_CEIL PIXELS_PER_STRIP/2
 
-PlainLightshow::PlainLightshow( OctoWS2811 *p, int color) {
+PlainLightshow::PlainLightshow( OctoWS2811 *p, RGBB color) {
   _pixels = p;
   _color = color;
   reset();
@@ -22,10 +22,10 @@ void PlainLightshow::updatePixels() {
   for ( s = 0; s < 5; s++ ) {
     for ( p = 0; p < PIXELS_PER_STRIP; p++ ) {
       if ( p < pixelsToLight ) {
-        Pixels::pixelSet(_pixels,s,p,_color);
+        Pixels::pixelSet(_pixels,s,p,_color,1.0);
       }
       else {
-        Pixels::pixelSet(_pixels,s,p,BLACK);
+        Pixels::pixelSet(_pixels,s,p,BLACK,0);
       }
     }
   }
