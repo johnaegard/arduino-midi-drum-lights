@@ -5,8 +5,6 @@
 
 struct Block {
   RGBB color;
-  unsigned int boostUntil; 
-  unsigned int dimUntil; 
 };
 
 class WitchLightshow : public Lightshow {

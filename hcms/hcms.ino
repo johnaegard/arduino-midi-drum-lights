@@ -31,9 +31,9 @@
 #define MILLIS_BETWEEN_FPS 2000
 #define VELOCITY_FLOOR 32
 
-#define DEMO true
+#define DEMO false
 #define MILLIS_BETWEEN_DEMO_NOTES 315
-#define DEMO_CHANNEL 10
+#define DEMO_MIDI_CHANNEL 10
 
 //
 // GLOBALS
@@ -249,57 +249,59 @@ void off() {
 }
 
 void demo() {
-  if ( millis() - g_last_demo_note_millis >= MILLIS_BETWEEN_DEMO_NOTES  ) {
+  if ( DEMO ) {
+    if ( millis() - g_last_demo_note_millis >= MILLIS_BETWEEN_DEMO_NOTES  ) {
 
-    byte note = ( g_demo_notes_sent++ % 16 ) + 1;
-    switch ( note ) {
-      case 1:
-        activeLightshow->handleNoteOn(DEMO_CHANNEL, HIHAT_OPEN, 127);
-        activeLightshow->handleNoteOn(DEMO_CHANNEL, KICK, 127);
-        break;
-      case 3:
-        activeLightshow->handleNoteOn(DEMO_CHANNEL, HIHAT_OPEN, 127);
-        activeLightshow->handleNoteOn(DEMO_CHANNEL, SNARE, 127);
-        break;
-      case 5:
-        activeLightshow->handleNoteOn(DEMO_CHANNEL, HIHAT_OPEN, 127);
-        activeLightshow->handleNoteOn(DEMO_CHANNEL, KICK, 127);
-        break;
-      case 7:
-        activeLightshow->handleNoteOn(DEMO_CHANNEL, HIHAT_OPEN, 127);
-        activeLightshow->handleNoteOn(DEMO_CHANNEL, SNARE, 127);
-        break;
-      case 9:
-        activeLightshow->handleNoteOn(DEMO_CHANNEL, RIDE, 127);
-        activeLightshow->handleNoteOn(DEMO_CHANNEL, KICK, 127);
-        break;
-      case 10:
-        activeLightshow->handleNoteOn(DEMO_CHANNEL, RIDE, 127);
-        break;
-      case 11:
-        activeLightshow->handleNoteOn(DEMO_CHANNEL, RIDE, 127);
-        activeLightshow->handleNoteOn(DEMO_CHANNEL, SNARE, 127);
-        break;
-      case 12:
-        activeLightshow->handleNoteOn(DEMO_CHANNEL, RIDE, 127);
-        break;
-      case 13:
-        activeLightshow->handleNoteOn(DEMO_CHANNEL, RIDE, 127);
-        activeLightshow->handleNoteOn(DEMO_CHANNEL, KICK, 127);
-        break;
-      case 14:
-        activeLightshow->handleNoteOn(DEMO_CHANNEL, RIDE, 127);
-        break;
-      case 15:
-        activeLightshow->handleNoteOn(DEMO_CHANNEL, RIDE, 127);
-        activeLightshow->handleNoteOn(DEMO_CHANNEL, SNARE, 127);
-        break;
-      case 16:
-        activeLightshow->handleNoteOn(DEMO_CHANNEL, RIDE, 127);
-        break;
-    
+      byte note = ( g_demo_notes_sent++ % 16 ) + 1;
+      switch ( note ) {
+        case 1:
+          activeLightshow->handleNoteOn(DEMO_MIDI_CHANNEL, HIHAT_OPEN, 127);
+          activeLightshow->handleNoteOn(DEMO_MIDI_CHANNEL, KICK, 127);
+          break;
+        case 3:
+          activeLightshow->handleNoteOn(DEMO_MIDI_CHANNEL, HIHAT_OPEN, 127);
+          activeLightshow->handleNoteOn(DEMO_MIDI_CHANNEL, SNARE, 127);
+          break;
+        case 5:
+          activeLightshow->handleNoteOn(DEMO_MIDI_CHANNEL, HIHAT_OPEN, 127);
+          activeLightshow->handleNoteOn(DEMO_MIDI_CHANNEL, KICK, 127);
+          break;
+        case 7:
+          activeLightshow->handleNoteOn(DEMO_MIDI_CHANNEL, HIHAT_OPEN, 127);
+          activeLightshow->handleNoteOn(DEMO_MIDI_CHANNEL, SNARE, 127);
+          break;
+        case 9:
+          activeLightshow->handleNoteOn(DEMO_MIDI_CHANNEL, RIDE, 127);
+          activeLightshow->handleNoteOn(DEMO_MIDI_CHANNEL, KICK, 127);
+          break;
+        case 10:
+          activeLightshow->handleNoteOn(DEMO_MIDI_CHANNEL, RIDE, 127);
+          break;
+        case 11:
+          activeLightshow->handleNoteOn(DEMO_MIDI_CHANNEL, RIDE, 127);
+          activeLightshow->handleNoteOn(DEMO_MIDI_CHANNEL, SNARE, 127);
+          break;
+        case 12:
+          activeLightshow->handleNoteOn(DEMO_MIDI_CHANNEL, RIDE, 127);
+          break;
+        case 13:
+          activeLightshow->handleNoteOn(DEMO_MIDI_CHANNEL, RIDE, 127);
+          activeLightshow->handleNoteOn(DEMO_MIDI_CHANNEL, KICK, 127);
+          break;
+        case 14:
+          activeLightshow->handleNoteOn(DEMO_MIDI_CHANNEL, RIDE, 127);
+          break;
+        case 15:
+          activeLightshow->handleNoteOn(DEMO_MIDI_CHANNEL, RIDE, 127);
+          activeLightshow->handleNoteOn(DEMO_MIDI_CHANNEL, SNARE, 127);
+          break;
+        case 16:
+          activeLightshow->handleNoteOn(DEMO_MIDI_CHANNEL, RIDE, 127);
+          break;
+
+      }
+      g_last_demo_note_millis = millis();
     }
-    g_last_demo_note_millis = millis();
   }
 }
 

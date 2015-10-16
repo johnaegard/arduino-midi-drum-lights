@@ -12,13 +12,6 @@ void WitchLightshow::reset() {
   _currentPaletteIndex = 0;
   _numHiHats = 0;
   _numRides = 0;
-  for ( byte s = 0; s < NUM_STRIPS; s++) {
-    for (byte b = 0; b < NUM_BLOCKS; b++) {
-      _blocks[s][b].boostUntil = 0;
-      _blocks[s][b].dimUntil = 0;
-    }
-  }
-  scrambleColors();
 }
 
 void WitchLightshow::updatePixels() {
