@@ -15,7 +15,7 @@ void BloodlettingLightshow::reset() {
 }
 
 void BloodlettingLightshow::decay() {
-  for (s = 0; s < 5; s++) {
+  for (byte s = 0; s < 5; s++) {
     applyDecay(_fRedEnergy[s], RED_DECAY, ENERGY_FLOOR, RED_CEIL);
     applyDecay(_fWhiteEnergy[s], WHITE_DECAY, ENERGY_FLOOR, WHITE_CEIL);
   }
@@ -26,10 +26,10 @@ void BloodlettingLightshow::updatePixels() {
   byte redPixelsToLight;
   byte whitePixelsToLight;
 
-  for (s = 0; s < 5; s++) {
+  for (byte s = 0; s < 5; s++) {
     redPixelsToLight =  _fRedEnergy[s];
     whitePixelsToLight = _fWhiteEnergy[s];
-    for (p = 0; p < PIXELS_PER_STRIP; p++) {
+    for (byte p = 0; p < PIXELS_PER_STRIP; p++) {
 
       byte distanceFromMiddle = abs ( p - MIDDLE_PIXEL );
 

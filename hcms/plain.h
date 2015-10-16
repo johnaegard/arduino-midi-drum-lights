@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include "lightshow.h"
 
 class PlainLightshow : public Lightshow

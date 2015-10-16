@@ -19,9 +19,10 @@
 //
 // LIGHTSHOWS
 //
-#include "plain_lightshow.h"
+#include "plain.h"
 #include "bloodletting.h"
 #include "bdm.h"
+#include "witch.h"
 
 #define BOARD_LED_PIN 13
 #define MAX_FPS 100
@@ -29,6 +30,10 @@
 #define OCTO_CONFIG WS2811_GRB | WS2811_800kHz
 #define MILLIS_BETWEEN_FPS 2000
 #define VELOCITY_FLOOR 32
+
+#define DEMO true
+#define MILLIS_BETWEEN_DEMO_NOTES 315
+#define DEMO_CHANNEL 10
 
 //
 // GLOBALS
@@ -42,6 +47,9 @@ unsigned long g_last_decay_millis = millis() + MILLIS_BETWEEN_FRAMES / 2;
 unsigned long g_last_fps_millis = millis();
 elapsedMillis runtime;
 unsigned long g_frames_processed = 0;
+
+unsigned long g_last_demo_note_millis = millis();
+unsigned long g_demo_notes_sent = 0;
 
 Lightshow *raven;
 Lightshow *skin;
@@ -60,11 +68,17 @@ Lightshow *activeLightshow;
 //
 void setup() {
   helloBoardLed();
+  setupRandom();
   setupMidi();
   setupPixels();
   helloPixels();
   setupDebugChannel();
   setupLightshows();
+}
+
+void setupRandom() {
+  pinMode(A1, INPUT);
+  randomSeed(analogRead(A1));
 }
 
 void setupMidi() {
@@ -85,18 +99,19 @@ void setupDebugChannel() {
   Serial.println("setup() complete!");
   Serial.println("Ready for action");
 }
+
 void setupLightshows() {
   raven = new PlainLightshow( &g_pixels, PURPLE);
   skin = new PlainLightshow( &g_pixels, WHITE);
   loose = new PlainLightshow( &g_pixels, BLUE);
   bloodletting = new BloodlettingLightshow( &g_pixels);
   creep = new PlainLightshow( &g_pixels, YELLOW);
-  witch = new PlainLightshow( &g_pixels, GREEN);
+  witch = new WitchLightshow( &g_pixels);
   hands = new PlainLightshow( &g_pixels, TEAL);
   bdm = new BDMLightshow( &g_pixels);
   unknown = new PlainLightshow( &g_pixels, PINK);
 
-  activeLightshow = bdm;
+  activeLightshow = witch;
   activeLightshow->reset();
 }
 
@@ -104,6 +119,7 @@ void setupLightshows() {
 // LLOOOOOOOOOOOOOOOOOOOOOPPP!
 //
 void loop() {
+  demo();
   MIDI.read();
   decay();
   repaint();
@@ -231,3 +247,59 @@ void on() {
 void off() {
   digitalWrite(BOARD_LED_PIN, LOW);
 }
+
+void demo() {
+  if ( millis() - g_last_demo_note_millis >= MILLIS_BETWEEN_DEMO_NOTES  ) {
+
+    byte note = ( g_demo_notes_sent++ % 16 ) + 1;
+    switch ( note ) {
+      case 1:
+        activeLightshow->handleNoteOn(DEMO_CHANNEL, HIHAT_OPEN, 127);
+        activeLightshow->handleNoteOn(DEMO_CHANNEL, KICK, 127);
+        break;
+      case 3:
+        activeLightshow->handleNoteOn(DEMO_CHANNEL, HIHAT_OPEN, 127);
+        activeLightshow->handleNoteOn(DEMO_CHANNEL, SNARE, 127);
+        break;
+      case 5:
+        activeLightshow->handleNoteOn(DEMO_CHANNEL, HIHAT_OPEN, 127);
+        activeLightshow->handleNoteOn(DEMO_CHANNEL, KICK, 127);
+        break;
+      case 7:
+        activeLightshow->handleNoteOn(DEMO_CHANNEL, HIHAT_OPEN, 127);
+        activeLightshow->handleNoteOn(DEMO_CHANNEL, SNARE, 127);
+        break;
+      case 9:
+        activeLightshow->handleNoteOn(DEMO_CHANNEL, RIDE, 127);
+        activeLightshow->handleNoteOn(DEMO_CHANNEL, KICK, 127);
+        break;
+      case 10:
+        activeLightshow->handleNoteOn(DEMO_CHANNEL, RIDE, 127);
+        break;
+      case 11:
+        activeLightshow->handleNoteOn(DEMO_CHANNEL, RIDE, 127);
+        activeLightshow->handleNoteOn(DEMO_CHANNEL, SNARE, 127);
+        break;
+      case 12:
+        activeLightshow->handleNoteOn(DEMO_CHANNEL, RIDE, 127);
+        break;
+      case 13:
+        activeLightshow->handleNoteOn(DEMO_CHANNEL, RIDE, 127);
+        activeLightshow->handleNoteOn(DEMO_CHANNEL, KICK, 127);
+        break;
+      case 14:
+        activeLightshow->handleNoteOn(DEMO_CHANNEL, RIDE, 127);
+        break;
+      case 15:
+        activeLightshow->handleNoteOn(DEMO_CHANNEL, RIDE, 127);
+        activeLightshow->handleNoteOn(DEMO_CHANNEL, SNARE, 127);
+        break;
+      case 16:
+        activeLightshow->handleNoteOn(DEMO_CHANNEL, RIDE, 127);
+        break;
+    
+    }
+    g_last_demo_note_millis = millis();
+  }
+}
+

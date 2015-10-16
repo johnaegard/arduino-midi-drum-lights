@@ -1,23 +1,31 @@
-TO DO:
+COSTUME
+LIGHT RACK
+
+MANDATORY
+  O Split power between two terminals.
 
 WITCH
-  * very plain.  Block colors, not so bright.  Change color every four hihats?  Reset count on crash.
-  * kick drum chorus increases brightness.
-
+    x pulse colors on ride.
+    x current palette color scramble on hihat.
+  x change palette every 4 hihats
+  x reset hihat count on crash cymbal
+  
 CREEP
   * hot white chorus triggered by ride
 
 BLOODLETTING
-  * ensure colors corrected
-  * hihat / ride influence global brightness?  Little pulse every beat?
+  x ensure colors corrected
+  o hihat / ride influence global brightness?  Little pulse every beat?
  
 BDM
   x make it rain and twinkle
-  o started by crash cymbal
-  o some interactivity 
-  o contrails?
+  x verify velocity working as programmed
+  x contrails?
+  o Mode 1: stars, started by cymbal pedal
+  o Mode 2: comets, started by crash cymbal
 
 LOOSE
+  * kick drum chorus increases brightness.
 
 HANDS
   * 
@@ -26,7 +34,6 @@ SKINHEADS
   * something with spin.
  
 
-o Split power between two terminals.
 o MIDI NOTE ON LED
 o POWER LED
 o Teensy POWERED BY LOCAL SUPPLY

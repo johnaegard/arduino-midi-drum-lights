@@ -1,12 +1,11 @@
 #ifndef Lightshow_h
 #define Lightshow_h
-
-#include <OctoWS2811.h>
 #include <Arduino.h>
-#include "td15_midi_notes.h"
+#include "td15.h"
 #include "constants.h"
 #include "pixels.h"
 #include "colors.h"
+#define HowBigIsThisArray(x) (sizeof(x) / sizeof(x[0]))
 
 class Lightshow {
   public:
@@ -20,7 +19,6 @@ class Lightshow {
 
   protected:
     OctoWS2811 *_pixels;
-    byte s, p;
 
     void applyDecay(
       float &energy,
