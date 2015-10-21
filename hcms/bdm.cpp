@@ -12,6 +12,9 @@ void BDMLightshow::reset() {
   for ( byte s = 0; s < NUM_STARS; s++) {
     resetStar(s);
   }
+  isStarted = true;
+  _cometMode = false;
+  Pixels::floodFill(_pixels, BLACK, 0);
 }
 
 void BDMLightshow::resetStar(byte s) {
@@ -28,12 +31,14 @@ void BDMLightshow::resetDrop(byte d) {
 }
 
 void BDMLightshow::decay() {
-  for ( byte d = 0; d < NUM_DROPS; d++) {
-    _drops[d].pixel = _drops[d].pixel + _drops[d].velocity;
-    if ( _drops[d].pixel > PIXELS_PER_STRIP ) {
-      resetDrop(d);
+  if (_cometMode) {
+    for ( byte d = 0; d < NUM_DROPS; d++) {
+      _drops[d].pixel = _drops[d].pixel + _drops[d].velocity;
+      if ( _drops[d].pixel > PIXELS_PER_STRIP ) {
+        resetDrop(d);
+      }
+      _drops[d].velocity = constrain(_drops[d].velocity + DROP_VELOCITY_ACCEL, DROP_VELOCITY_FLOOR, DROP_VELOCITY_FLOOR + DROP_VELOCITY_RANGE);
     }
-    _drops[d].velocity = constrain(_drops[d].velocity + DROP_VELOCITY_ACCEL, DROP_VELOCITY_FLOOR, DROP_VELOCITY_FLOOR + DROP_VELOCITY_RANGE);
   }
 }
 
@@ -43,25 +48,34 @@ void BDMLightshow::updatePixels() {
 
   for ( byte s = 0; s < NUM_STARS; s++) {
     if ( twinkle)  {
-      _stars[s].twinkleBrightness = ( (float) random( STAR_TWINKLE_FLOOR * 100, 101) ) / 100.0f;
+      if (_cometMode) {
+        _stars[s].color = DARKBLUEWHITE;
+      }
+      _stars[s].twinkleBrightness = ( (float) random( STAR_TWINKLE_FLOOR * 100, STAR_TWINKLE_CEIL * 100) ) / 100.0f;
     }
     lightStarPixel(s);
   }
 
-  for ( byte d = 0; d < NUM_DROPS; d++) {
-    if ( _drops[d].hasMoved() ) {
-      blackoutOldPixels(d);
-      _drops[d].updateContrails();
-      _drops[d].updateHistory();
+  if (_cometMode) {
+    for ( byte d = 0; d < NUM_DROPS; d++) {
+      if ( _drops[d].hasMoved() ) {
+        blackoutOldPixels(d);
+        _drops[d].updateContrails();
+        _drops[d].updateHistory();
+      }
+      if ( twinkle)  {
+        _drops[d].twinkleBrightness = ( (float) random( DROP_TWINKLE_FLOOR * 100, 101) ) / 100.0f;
+      }
+      lightDropPixels(d);
     }
-    if ( twinkle)  {
-      _drops[d].twinkleBrightness = ( (float) random( DROP_TWINKLE_FLOOR * 100, 101) ) / 100.0f;
+    if ( twinkle) {
+      _previousTwinkleMillis = millis();
     }
-    lightDropPixels(d);
   }
-  if ( twinkle) {
-    _previousTwinkleMillis = millis();
-  }
+
+
+
+
 
 }
 
@@ -107,15 +121,28 @@ void BDMLightshow::handleNoteOn(byte channel, byte instrument, byte velocity) {
     case KICK:
       break;
     case SNARE:
-      reset();
       break;
     case SNARE_RIM:
-      reset();
       break;
     case XSTICK:
-      reset();
+      break;
+    case CRASH1:
+      crash();
+      break;
+    case CRASH1_EDGE:
+      crash();
+      break;
+    case CRASH2:
+      crash();
+      break;
+    case CRASH2_EDGE:
+      crash();
       break;
   }
+}
+
+void BDMLightshow::crash() {
+  _cometMode = true;
 }
 
 void BDMLightshow::handleNoteOff(byte channel, byte instrument, byte velocity) {}

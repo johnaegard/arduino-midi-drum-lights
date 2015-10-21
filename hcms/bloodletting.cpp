@@ -12,6 +12,8 @@ void BloodlettingLightshow::reset() {
   _currentRedStrip = 0;
   _currentWhiteStrip = 0;
   verseColors();
+  isStarted = false;
+  Pixels::floodFill(_pixels, BLACK, 1.0);
 }
 
 void BloodlettingLightshow::decay() {
@@ -108,16 +110,16 @@ void BloodlettingLightshow::handleNoteOn(byte channel, byte instrument, byte vel
         constrain( _fWhiteEnergy[0] + map(pow(velocity, 1.75), 0, 4804, 0, SNARE_IMPULSE), ENERGY_FLOOR, WHITE_CEIL / 5);
       break;
     case CRASH1:
-      resetSparkle();
+      crash();
       break;
     case CRASH1_EDGE:
-      resetSparkle();
+      crash();
       break;
     case CRASH2:
-      resetSparkle();
+      crash();
       break;
     case CRASH2_EDGE:
-      resetSparkle();
+      crash();
       break;
     case TOM1:
       break;
@@ -158,6 +160,11 @@ void BloodlettingLightshow::handleNoteOn(byte channel, byte instrument, byte vel
 
   }
 
+}
+
+void BloodlettingLightshow::crash() {
+  isStarted = true;
+  resetSparkle();
 }
 
 void BloodlettingLightshow::handleNoteOff(byte channel, byte instrument, byte velocity) {}

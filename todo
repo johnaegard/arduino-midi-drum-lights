@@ -1,39 +1,53 @@
-COSTUME
-LIGHT RACK
+o VOLUME ON DRUMS
+o COSTUME
+o BDM Fills
+o Hands Fills
+o program change feedback
 
 MANDATORY
-  O Split power between two terminals.
-
-WITCH
-    x pulse colors on ride.
-    x current palette color scramble on hihat.
-  x change palette every 4 hihats
-  x reset hihat count on crash cymbal
-  
-CREEP
-  o spins?
-  o hot white chorus triggered by ride
+  x Split power between two terminals.
 
 BLOODLETTING
   x ensure colors corrected
+  x started by CRASH
  
+WITCH
+  x pulse colors on ride.
+  x current palette color scramble on hihat.
+  x change palette every 4 hihats
+  x reset hihat count on crash cymbal
+  x started by...
+  x tom during chorus.
+  x cymbal color blast.
+
 BDM
   x make it rain and twinkle
   x verify velocity working as programmed
   x contrails?
-  o Mode 1: stars, started by cymbal pedal
-  o Mode 2: comets, started by crash cymbal
+  x Mode 1: stars, started by cymbal pedal
+  x Mode 2: comets, started by crash cymbal
+  x started by...
+  
+CREEP
+  o cool verse colors, blues.
+  o hot white / red chorus triggered by ride
 
 LOOSE
-  * kick drum chorus increases brightness.
+  * checkerboard
+  * two palettes, one small, one large.
+  * kick drum advances through palette
+  * spin
+  * snare = wandering color block
+  * colorblast on snare to begin.
+  
 
 HANDS
   * 
 
 SKINHEADS
-  * something with spin.
+  * spinning rainbows.
+  * rainbow
  
-
 o MIDI NOTE ON LED
 o POWER LED
 o Teensy POWERED BY LOCAL SUPPLY

@@ -2,17 +2,18 @@
 #define bdm_h
 
 #include "lightshow.h"
-#define NUM_DROPS 16
-#define MILLIS_BETWEEN_TWINKLES 75
+#define NUM_DROPS 30
+#define MILLIS_BETWEEN_TWINKLES 100
 #define DROP_TWINKLE_FLOOR 0.6f
 #define DROP_VELOCITY_FLOOR 0.1f
 #define DROP_VELOCITY_RANGE 0.5f
-#define DROP_VELOCITY_ACCEL 0.0005f
+#define DROP_VELOCITY_ACCEL 0.00075f
 #define CONTRAIL_BRIGHTNESS_1 0.5f
 #define CONTRAIL_BRIGHTNESS_2 0.35f
 #define CONTRAIL_BRIGHTNESS_3 0.15f
-#define STAR_TWINKLE_FLOOR 0.7f
-#define NUM_STARS 24
+#define STAR_TWINKLE_FLOOR 0.4f
+#define STAR_TWINKLE_CEIL 0.8f
+#define NUM_STARS 16
 #define STAR_FLOOR 0
 #define STAR_CEILING 60
 
@@ -84,9 +85,11 @@ class BDMLightshow : public Lightshow
     void blackoutOldPixels(byte d);
     void lightDropPixels(byte d);
     void lightStarPixel(byte s);
+    void crash();
 
     Drop _drops[NUM_DROPS];
     Star _stars[NUM_STARS];
+    bool _cometMode;
     
     unsigned long _previousTwinkleMillis = millis();
     const RGBB bdmPalette[10] = { LIGHTBLUE, LIGHTGREEN, LIGHTYELLOW, LIGHTTEAL, LIGHTORANGE, VIOLET, HOT_PINK, LIGHTRED, WHITE, BLUE_HVY_PURPLE};

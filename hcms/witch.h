@@ -24,10 +24,11 @@ class WitchLightshow : public Lightshow {
     void hiHat();
     void ride();
     void crash();
+    void tom();
   
     const RGBB palette[2][5] = {
       {BLUE_HVY_PURPLE, BLUE, ORANGE, GREEN_HEAVY_TEAL, WHITE},
-      {RED, YELLOW, GREEN, WHITE, BLUE}
+      {GREEN, YELLOW, RED, WHITE, BLUE}
     };
     Block _blocks[NUM_STRIPS][NUM_BLOCKS];
     byte _currentPaletteIndex;
@@ -35,4 +36,6 @@ class WitchLightshow : public Lightshow {
     byte _numRides;
     bool _soloColorMode;
     RGBB _soloColor;
+    bool _crashDarkMode;
+    bool _crashDarkModeBlastHappened;
 };

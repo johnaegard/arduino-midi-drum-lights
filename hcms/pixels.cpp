@@ -43,3 +43,10 @@ void Pixels::floodFill(OctoWS2811 *pixels, RGBB color, float brightness) {
     }
   }
 }
+
+void Pixels::fillStrip(OctoWS2811 *pixels, byte strip, RGBB color, float brightness) {
+  for (byte p = 0; p < PIXELS_PER_STRIP; p++) {
+    pixelSet(pixels, strip, p, color, brightness);
+  }
+}
+

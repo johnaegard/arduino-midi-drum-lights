@@ -31,6 +31,7 @@ class BloodlettingLightshow : public Lightshow
     void decaySparkle();
     void resetSparkle();
     void verseColors();
+    void crash();
     void chorusColors();
     float _fRedEnergy[5] = {0, 0, 0, 0, 0};
     float _fWhiteEnergy[5] = {0, 0, 0, 0, 0};

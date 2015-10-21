@@ -14,6 +14,7 @@ class Lightshow {
     virtual void reset() = 0;
     virtual void handleNoteOn(byte channel, byte instrument, byte velocity) = 0;
     virtual void handleNoteOff(byte channel, byte instrument, byte velocity) = 0;
+    bool isStarted = false;
 
     Lightshow() {}
 

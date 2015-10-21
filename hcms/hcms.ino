@@ -23,6 +23,8 @@
 #include "bloodletting.h"
 #include "bdm.h"
 #include "witch.h"
+#include "creep.h"
+#include "loose.h"
 
 #define BOARD_LED_PIN 13
 #define MAX_FPS 100
@@ -32,7 +34,7 @@
 #define VELOCITY_FLOOR 32
 
 #define DEMO false
-#define MILLIS_BETWEEN_DEMO_NOTES 315
+#define MILLIS_BETWEEN_DEMO_NOTES 125
 #define DEMO_MIDI_CHANNEL 10
 
 //
@@ -103,15 +105,15 @@ void setupDebugChannel() {
 void setupLightshows() {
   raven = new PlainLightshow( &g_pixels, PURPLE);
   skin = new PlainLightshow( &g_pixels, WHITE);
-  loose = new PlainLightshow( &g_pixels, BLUE);
+  loose = new LooseLightshow( &g_pixels);
   bloodletting = new BloodlettingLightshow( &g_pixels);
-  creep = new PlainLightshow( &g_pixels, YELLOW);
+  creep = new CreepLightshow( &g_pixels);
   witch = new WitchLightshow( &g_pixels);
   hands = new PlainLightshow( &g_pixels, TEAL);
   bdm = new BDMLightshow( &g_pixels);
   unknown = new PlainLightshow( &g_pixels, PINK);
 
-  activeLightshow = witch;
+  activeLightshow = loose;
   activeLightshow->reset();
 }
 
@@ -121,9 +123,11 @@ void setupLightshows() {
 void loop() {
   demo();
   MIDI.read();
-  decay();
-  repaint();
-  outputFPS();
+  if ( activeLightshow->isStarted ) {
+    decay();
+    repaint();
+    outputFPS();
+  }
 }
 
 //
@@ -193,6 +197,7 @@ void handleProgramChange (byte channel, byte drumkit) {
       activeLightshow = unknown;
   }
   activeLightshow->reset();
+  g_pixels.show();
 }
 
 bool activeSensingLightToggle = false;
